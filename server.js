@@ -23,9 +23,19 @@ app.use("/api/articles", articleRoutes);
 app.use("/scrape", scrapeRoutes)
 require("./routes/html-routes.js")(app);
 
- var MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/nytimesscraper";
-
- mongoose.connect(MONGODB_URI);
+try {
+  if (process.env.NODE_ENV === 'production') {
+    const connection = await mongoose.connect(process.env.MONGODB_URI);
+    console.log(`Connected to MongoDB PROD`);
+  } else {
+    const connection = await mongoose.connect(
+      'mongodb://localhost/nytimesscraper'
+    );
+    console.log(`Connected to MongoDB DEV`);
+  }
+} catch (err) {
+  err => console.log(`Error: ${err.message}`);
+}
 
 // Start the server
 app.listen(PORT, function() {
