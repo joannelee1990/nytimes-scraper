@@ -1,0 +1,113 @@
+
+    <div>
+        <div id="articlespage">
+        </div>
+    </div>
+
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>    
+
+
+<script>
+  $(document).ready(async () => {
+  const articles = await axios.get('api/articles');
+  for (var i = 0; i < articles.data.length; i++) {
+    const headline = articles.data[i].headline;
+    const link = articles.data[i].link;
+    const summary = articles.data[i].summary;
+    const key = articles.data[i]._id;
+    const allNotes = articles.data[i].notes;
+    let notesArr = [];
+    for (var j = 0; j < allNotes.length; j++) {
+      var notez = allNotes[j];
+      notesArr.push(notez);
+    }
+    const banan = notesArr.join(' ');
+    var article = `<div class="card bg-dark border border-white">
+              <div class="card-header border border-white">
+                <h1><strong><a href="${link}" target="_blank" class="text-danger">
+                  ${headline}
+                </a></strong></h1>
+              </div>
+              <div class="card-body border border-white">
+                <a class="card-text text-danger" href="${link}" target="_blank">${summary}</a>
+                <button class="btn btn-danger commentBtn text-white" key="${key}">
+                  Comment
+                </button>
+                <button class="btn btn-danger deleteBtn" key="${key}">
+                  Delete Article
+                </button>
+                <h6 class="text-white">Comments:</h6>
+                <p class="text-white">${banan}</p>
+              </div>
+            </div>`;
+    $('#articlespage').append(article);
+    notesArr = [];
+  }
+  $('.deleteBtn').on('click', function(e) {
+    e.preventDefault();
+    const id = $(this).attr('key');
+    axios.delete(`/api/articles/${id}`);
+    location.reload();
+  });
+  const saveComment = (articleId) => {
+    $('#saveCmntBtn').on('click', async function(e) {
+      try {
+        e.preventDefault();
+        const note = $('#comment')
+          .val()
+          .trim();
+        $('.modal').modal('toggle');
+        const newNote = {
+          note: note,
+          id: articleId
+        };
+        const populatedArticle = await axios.post('/api/notes', newNote);
+        const articles = await axios.get('api/articles');
+        $('#article').empty();
+        for (var i = 0; i < articles.data.length; i++) {
+          const headline = articles.data[i].headline;
+          const link = articles.data[i].link;
+          const summary = articles.data[i].paragraph;
+          const key = articles.data[i]._id;
+          const allNotes = articles.data[i].notes;
+          let notesArr = [];
+          for (var j = 0; j < allNotes.length; j++) {
+            var notez = allNotes[j];
+            notesArr.push(notez);
+          }
+          const banan = notesArr.join(' ');
+          var article = `<div class="card bg-dark border border-white">
+              <div class="card-header border border-white">
+                <h1><strong><a href="${link}" target="_blank" class="text-danger">
+                  ${headline}
+                </a></strong></h1>
+              </div>
+              <div class="card-body border border-white">
+                <a class="card-text text-danger" href="${link}" target="_blank">${summary}</a>
+                <button class="btn btn-danger commentBtn text-white" key="${key}">
+                  Comment
+                </button>
+                <button class="btn btn-danger deleteBtn" key="${key}">
+                  Delete Article
+                </button>
+                <h6 class="text-white">Comments:</h6>
+                <p class="text-white">${banan}</p>
+              </div>
+            </div>`;
+          $('#article').append(article);
+          notesArr = [];
+        }
+        location.reload();
+      } catch (err) {
+        console.log(`Error: ${err.message}`);
+      }
+    });
+  }
+  $('.commentBtn').on('click', function(e) {
+    e.preventDefault();
+    const articleId = $(this).attr('key');
+    $('.modal').modal('toggle');
+    saveComment(articleId);
+  });
+});
+</script>

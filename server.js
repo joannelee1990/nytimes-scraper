@@ -1,48 +1,31 @@
 var express = require("express");
 var bodyParser = require("body-parser");
-var logger = require("morgan");
 var mongoose = require("mongoose");
+var articleRoutes = require("./routes/articles");
+var scrapeRoutes = require("./routes/scraper");
 
-// Our scraping tools
-// Axios is a promised-based http library, similar to jQuery's Ajax method
-// It works on the client and on the server
-var axios = require("axios");
-var cheerio = require("cheerio");
+ var cheerio = require("cheerio");
+var routes = require("./routes/scraper")
+var PORT = process.env.PORT || 8080;
 
-// Require all models
-var db = require("./models");
-
-var PORT = process.env.PORT || 3000;
-
-// Initialize Express
 var app = express();
 
-// Set Handlebars.
 var exphbs = require("express-handlebars");
 
-app.engine("handlebars", exphbs({ defaultLayout: "main" }));
-app.set("view engine", "handlebars");
-
-// Use morgan logger for logging requests
-app.use(logger("dev"));
-// Use body-parser for handling form submissions
-app.use(bodyParser.urlencoded({ extended: true }));
-// Use express.static to serve the public folder as a static directory
 app.use(express.static("public"));
+ app.engine("handlebars", exphbs({ defaultLayout: "main" }));
+ app.set("view engine", "handlebars");
 
-// Configure middleware
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json())
+app.use("/api/articles", articleRoutes);
 
-// Routes
-// =============================================================
+app.use("/scrape", scrapeRoutes)
 require("./routes/html-routes.js")(app);
-require("./routes/author-routes.js")(app);
-require("./routes/notes-routes.js")(app);
-require("./routes/scraper-routes.js")(app);
 
-var MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/nytimesscraper";
+ var MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/nytimesscraper";
 
-// Connect to the Mongo DB
-mongoose.connect(MONGODB_URI);
+ mongoose.connect(MONGODB_URI);
 
 // Start the server
 app.listen(PORT, function() {
